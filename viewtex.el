@@ -1,31 +1,20 @@
-; Todo: 
-; 
-; Multiple xdvi processes, depending on file name. 
-;
-; frob TEXINPUTS in process-environment to include original working
-; directory of source file, in case viewtex file is elsewhere.
-;
-
-;;; viewtex.el -- display regions of TeX files using an X DVI previewer.
-;;;
-;;; Copyright (C) 1993 Noah S. Friedman
-;;;
-;;; This program is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; This program is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with this program; if not, you can either send email to this
-;;; program's author (see below) or write to: The Free Software Foundation,
-;;; Inc.; 675 Massachusetts Avenue; Cambridge, MA 02139, USA.
-;;;
-;;; Please send bug reports, etc. to friedman@prep.ai.mit.edu
+;;; viewtex.el --- display regions of TeX files using an X DVI previewer.
+
+;; Author: Noah Friedman <friedman@splode.com>
+;; Created: 1993
+;; Keywords: tex, processes
+;; License: public domain
+
+;;; Comments:
+
+;; Todo:
+;;
+;; Multiple xdvi processes, depending on file name.
+;;
+;; frob TEXINPUTS in process-environment to include original working
+;; directory of source file, in case viewtex file is elsewhere.
+
+;;; Code:
 
 (require 'comint)
 
@@ -64,11 +53,11 @@ This is obsolesced in Emacs 19 by `after-load-alist'.")
 ;; Process object for currently-running xdvi, if there is one.
 (defvar viewtex-xdvi-process nil nil)
 
-;; Name of temporary buffer for contructing viewtex-file. 
+;; Name of temporary buffer for contructing viewtex-file.
 (defconst viewtex-viewtex-buffer " *TeX region*" nil)
 
 ;; Name of buffer for displaying errors and other random output from
-;; xdvi. 
+;; xdvi.
 (defconst viewtex-xdvi-buffer " *xdvi output*" nil)
 
 
@@ -76,7 +65,7 @@ This is obsolesced in Emacs 19 by `after-load-alist'.")
 (defun viewtex (&optional command)
   "Document me."
   (interactive (list (if current-prefix-arg
-                         (read-from-minibuffer "viewtex command: " 
+                         (read-from-minibuffer "viewtex command: "
                                                "tex")
                        "tex")))
   (let ((process-connection-type nil)
@@ -84,10 +73,10 @@ This is obsolesced in Emacs 19 by `after-load-alist'.")
         proc)
     (and (comint-check-proc cmd-buffer)
          (error "viewtex is already running."))
-    ;; If called in a noninteractive fashion, `command' may be nil. 
+    ;; If called in a noninteractive fashion, `command' may be nil.
     (or command (setq command "tex"))
     ;; If buffer is narrowed, point-min != 0 or point-max != buffer-size.
-    ;; Use all of narrowed region instead of just point+mark. 
+    ;; Use all of narrowed region instead of just point+mark.
     (if (or (/= (point-min) 1) (/= (point-max) (1+ (buffer-size))))
         (viewtex-make-tmpfile (current-buffer) (point-min) (point-max))
       (viewtex-make-tmpfile (current-buffer) (region-beginning) (region-end)))
@@ -112,12 +101,12 @@ This is obsolesced in Emacs 19 by `after-load-alist'.")
 
 ;;;###autoload
 (defun viewtex-mode ()
-  "Set major mode for viewtex sessions. 
+  "Set major mode for viewtex sessions.
 If `viewtex-mode-hook' is set, run it."
   (interactive)
   (comint-mode)
   ;; Good enough for now.  Might find one specially tuned to tex prompts
-  ;; eventually.  
+  ;; eventually.
   (setq comint-prompt-regexp shell-prompt-pattern)
   (setq major-mode 'viewtex-mode)
   (setq mode-name "viewtex")
@@ -155,7 +144,7 @@ If `viewtex-mode-hook' is set, run it."
             (setq inputs (cdr inputs)))
           (insert region)
           ;; It doesn't hurt to have an extra `\end' and TeX will barf if
-          ;; it's missing, so always add it. 
+          ;; it's missing, so always add it.
           (insert "\n\\end\n")
           (write-region (point-min) (point-max) viewtex-file))
       (store-match-data orig-match-data)
@@ -190,14 +179,14 @@ If `viewtex-mode-hook' is set, run it."
   ;; Unfortunately, tex will not exit with a nonzero exit status when you
   ;; do an emergency stop.  So to keep the tex sentinel from thinking it
   ;; should start xdvi, set a flag which indicates that tex is really
-  ;; misbehaving. 
+  ;; misbehaving.
   (let ((orig-match-data (match-data)))
     (unwind-protect
         (and (or (string-match "! Emergency stop" string)
                  (string-match "No pages of output" string))
              (setq viewtex-tex-emergency-stop t))
       (store-match-data orig-match-data)))
-  ;; Now actually insert the text in the right buffer. 
+  ;; Now actually insert the text in the right buffer.
   (let (proc-mark region-begin window)
     (save-excursion
       (set-buffer (process-buffer proc))
@@ -261,7 +250,7 @@ If `viewtex-mode-hook' is set, run it."
       (setq viewtex-xdvi-process xdvi-process))))
 
 ;; Like default filter, but use insert-before-markers and make sure buffer
-;; is displayed if any output is sent to it. 
+;; is displayed if any output is sent to it.
 (defun viewtex-xdvi-filter (proc string)
     (save-excursion
       (set-buffer (process-buffer proc))
@@ -279,10 +268,10 @@ If `viewtex-mode-hook' is set, run it."
 
 
 ;; Provide before running hooks, just in case something in hooks
-;; generate an error. 
+;; generate an error.
 (provide 'viewtex)
 
 ;; This is obsolesced in Emacs 19 by `after-load-alist'.
 (run-hooks 'viewtex-after-load-hook)
 
-;; viewtex.el ends here.
+;;; viewtex.el ends here.
